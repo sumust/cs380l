@@ -65,7 +65,7 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
 
-    region = mmap(NULL, 1024 * 1024 * 1024, PROT_WRITE, flags, fd, 0);
+    region = (char*) mmap(NULL, 1024 * 1024 * 1024, PROT_WRITE, flags, fd, 0);
     if (region == MAP_FAILED) {
         perror("mmap");
         exit(2);
