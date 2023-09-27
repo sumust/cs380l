@@ -3,6 +3,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <time.h>
+#include <stdint.h>
+#include <string.h>
 
 #define IO_SIZE 4096
 #define FILE_SIZE (1024 * 1024 * 1024) // 1GB
