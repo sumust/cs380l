@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -20,25 +21,23 @@ void shuffle(uint64_t* array, size_t n) {
     }
 }
 
-void do_file_io(int fd, char *buf, 
-      uint64_t *offset_array, size_t n, int opt_read)
-{
-  int ret = 0;
-  for (int i = 0; i < n; i++) {
-    ret = lseek(fd, offset_array[i], SEEK_SET);
-    if (ret == -1) {
-      perror("lseek");
-      exit(-1);
+void do_file_io(int fd, char *buf, uint64_t *offset_array, size_t n, int opt_read) {
+    int ret = 0;
+    for (int i = 0; i < n; i++) {
+        ret = lseek(fd, offset_array[i], SEEK_SET);
+        if (ret == -1) {
+            perror("lseek");
+            exit(-1);
+        }
+        if (opt_read)
+            ret = read(fd, buf, IO_SIZE);
+        else
+            ret = write(fd, buf, IO_SIZE);
+        if (ret == -1) {
+            perror("read/write");
+            exit(-1);
+        }
     }
-    if (opt_read)
-      ret = read(fd, buf, IO_SIZE);
-    else
-      ret = write(fd, buf, IO_SIZE);
-    if (ret == -1) {
-      perror("read/write");
-      exit(-1);
-    }
-  }
 }
 
 int main(int argc, char* argv[]) {
@@ -66,7 +65,13 @@ int main(int argc, char* argv[]) {
         exit(-1);
     }
 
-    char buf[IO_SIZE];
+    // Allocated aligned buffer
+    char *buf;
+    if (posix_memalign((void**)&buf, 4096, IO_SIZE)) {
+        perror("posix_memalign");
+        exit(-1);
+    }
+
     uint64_t offset_array[FILE_SIZE / IO_SIZE];
     size_t n = FILE_SIZE / IO_SIZE;
 
@@ -88,5 +93,6 @@ int main(int argc, char* argv[]) {
     }
 
     close(fd);
+    free(buf); // Free the allocated buffer
     return 0;
 }
