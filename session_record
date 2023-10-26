@@ -1,0 +1,243 @@
+Script started on 2023-10-25 17:42:33-06:00 [TERM="xterm-256color" TTY="/dev/pts/2" COLUMNS="120" LINES="30"]
+[?2004h]0;zsm424@node-0: ~[01;32mzsm424@node-0[00m:[01;34m~[00m$ strace cat - > new_file
+[?2004lexecve("/usr/bin/cat", ["cat", "-"], 0x7fff51d49268 /* 23 vars */) = 0
+brk(NULL)                               = 0x557bd037c000
+arch_prctl(0x3001 /* ARCH_??? */, 0x7ffdaf762790) = -1 EINVAL (Invalid argument)
+mmap(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fd9e6d37000
+access("/etc/ld.so.preload", R_OK)      = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/etc/ld.so.cache", O_RDONLY|O_CLOEXEC) = 3
+newfstatat(3, "", {st_mode=S_IFREG|0644, st_size=23039, ...}, AT_EMPTY_PATH) = 0
+mmap(NULL, 23039, PROT_READ, MAP_PRIVATE, 3, 0) = 0x7fd9e6d31000
+close(3)                                = 0
+openat(AT_FDCWD, "/lib/x86_64-linux-gnu/libc.so.6", O_RDONLY|O_CLOEXEC) = 3
+read(3, "\177ELF\2\1\1\3\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0P\237\2\0\0\0\0\0"..., 832) = 832
+pread64(3, "\6\0\0\0\4\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0"..., 784, 64) = 784
+pread64(3, "\4\0\0\0 \0\0\0\5\0\0\0GNU\0\2\0\0\300\4\0\0\0\3\0\0\0\0\0\0\0"..., 48, 848) = 48
+pread64(3, "\4\0\0\0\24\0\0\0\3\0\0\0GNU\0\244;\374\204(\337f#\315I\214\234\f\256\271\32"..., 68, 896) = 68
+newfstatat(3, "", {st_mode=S_IFREG|0755, st_size=2216304, ...}, AT_EMPTY_PATH) = 0
+pread64(3, "\6\0\0\0\4\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0"..., 784, 64) = 784
+mmap(NULL, 2260560, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7fd9e6b09000
+mmap(0x7fd9e6b31000, 1658880, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x28000) = 0x7fd9e6b31000
+mmap(0x7fd9e6cc6000, 360448, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1bd000) = 0x7fd9e6cc6000
+mmap(0x7fd9e6d1e000, 24576, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x214000) = 0x7fd9e6d1e000
+mmap(0x7fd9e6d24000, 52816, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7fd9e6d24000
+close(3)                                = 0
+mmap(NULL, 12288, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fd9e6b06000
+arch_prctl(ARCH_SET_FS, 0x7fd9e6b06740) = 0
+set_tid_address(0x7fd9e6b06a10)         = 36086
+set_robust_list(0x7fd9e6b06a20, 24)     = 0
+rseq(0x7fd9e6b070e0, 0x20, 0, 0x53053053) = 0
+mprotect(0x7fd9e6d1e000, 16384, PROT_READ) = 0
+mprotect(0x557bcea64000, 4096, PROT_READ) = 0
+mprotect(0x7fd9e6d71000, 8192, PROT_READ) = 0
+prlimit64(0, RLIMIT_STACK, NULL, {rlim_cur=8192*1024, rlim_max=RLIM64_INFINITY}) = 0
+munmap(0x7fd9e6d31000, 23039)           = 0
+getrandom("\x33\x0d\xb3\xa4\xb8\xac\x0a\xa3", 8, GRND_NONBLOCK) = 8
+brk(NULL)                               = 0x557bd037c000
+brk(0x557bd039d000)                     = 0x557bd039d000
+openat(AT_FDCWD, "/usr/lib/locale/locale-archive", O_RDONLY|O_CLOEXEC) = 3
+newfstatat(3, "", {st_mode=S_IFREG|0644, st_size=3048928, ...}, AT_EMPTY_PATH) = 0
+mmap(NULL, 3048928, PROT_READ, MAP_PRIVATE, 3, 0) = 0x7fd9e681d000
+close(3)                                = 0
+newfstatat(1, "", {st_mode=S_IFREG|0644, st_size=0, ...}, AT_EMPTY_PATH) = 0
+newfstatat(0, "", {st_mode=S_IFCHR|0620, st_rdev=makedev(0x88, 0x3), ...}, AT_EMPTY_PATH) = 0
+fadvise64(0, 0, 0, POSIX_FADV_SEQUENTIAL) = 0
+mmap(NULL, 139264, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fd9e67fb000
+read(0, hi mom
+"hi mom\n", 131072)             = 7
+write(1, "hi mom\n", 7)                 = 7
+read(0, "", 131072)                     = 0
+munmap(0x7fd9e67fb000, 139264)          = 0
+close(0)                                = 0
+close(1)                                = 0
+close(2)                                = 0
+exit_group(0)                           = ?
++++ exited with 0 +++
+[?2004h]0;zsm424@node-0: ~[01;32mzsm424@node-0[00m:[01;34m~[00m$ lsof | grep /dev
+[?2004lsystemd   27136                          zsm424    0r      CHR                1,3      0t0          5 [01;31m[K/dev[m[K/null
+bash      27168                          zsm424    0u      CHR              136,0      0t0          3 [01;31m[K/dev[m[K/pts/0
+bash      27168                          zsm424    1u      CHR              136,0      0t0          3 [01;31m[K/dev[m[K/pts/0
+bash      27168                          zsm424    2u      CHR              136,0      0t0          3 [01;31m[K/dev[m[K/pts/0
+bash      27168                          zsm424  255u      CHR              136,0      0t0          3 [01;31m[K/dev[m[K/pts/0
+bash      34714                          zsm424    0u      CHR              136,1      0t0          4 [01;31m[K/dev[m[K/pts/1
+bash      34714                          zsm424    1u      CHR              136,1      0t0          4 [01;31m[K/dev[m[K/pts/1
+bash      34714                          zsm424    2u      CHR              136,1      0t0          4 [01;31m[K/dev[m[K/pts/1
+bash      34714                          zsm424  255u      CHR              136,1      0t0          4 [01;31m[K/dev[m[K/pts/1
+script    36062                          zsm424    0u      CHR              136,0      0t0          3 [01;31m[K/dev[m[K/pts/0
+script    36062                          zsm424    1u      CHR              136,0      0t0          3 [01;31m[K/dev[m[K/pts/0
+script    36062                          zsm424    2u      CHR              136,0      0t0          3 [01;31m[K/dev[m[K/pts/0
+script    36062                          zsm424    3u      CHR                5,2      0t0         87 [01;31m[K/dev[m[K/ptmx
+script    36062                          zsm424    4u      CHR              136,2      0t0          5 [01;31m[K/dev[m[K/pts/2
+bash      36063                          zsm424    0u      CHR              136,2      0t0          5 [01;31m[K/dev[m[K/pts/2
+bash      36063                          zsm424    1u      CHR              136,2      0t0          5 [01;31m[K/dev[m[K/pts/2
+bash      36063                          zsm424    2u      CHR              136,2      0t0          5 [01;31m[K/dev[m[K/pts/2
+bash      36063                          zsm424  255u      CHR              136,2      0t0          5 [01;31m[K/dev[m[K/pts/2
+strace    36070                          zsm424    2u      CHR              136,2      0t0          5 [01;31m[K/dev[m[K/pts/2
+cat       36073                          zsm424    0u      CHR              136,2      0t0          5 [01;31m[K/dev[m[K/pts/2
+cat       36073                          zsm424    2u      CHR              136,2      0t0          5 [01;31m[K/dev[m[K/pts/2
+script    36075                          zsm424    0u      CHR              136,2      0t0          5 [01;31m[K/dev[m[K/pts/2
+script    36075                          zsm424    1u      CHR              136,2      0t0          5 [01;31m[K/dev[m[K/pts/2
+script    36075                          zsm424    2u      CHR              136,2      0t0          5 [01;31m[K/dev[m[K/pts/2
+script    36075                          zsm424    3u      CHR                5,2      0t0         87 [01;31m[K/dev[m[K/ptmx
+script    36075                          zsm424    4u      CHR              136,3      0t0          6 [01;31m[K/dev[m[K/pts/3
+bash      36076                          zsm424    0u      CHR              136,3      0t0          6 [01;31m[K/dev[m[K/pts/3
+bash      36076                          zsm424    1u      CHR              136,3      0t0          6 [01;31m[K/dev[m[K/pts/3
+bash      36076                          zsm424    2u      CHR              136,3      0t0          6 [01;31m[K/dev[m[K/pts/3
+bash      36076                          zsm424  255u      CHR              136,3      0t0          6 [01;31m[K/dev[m[K/pts/3
+lsof      36090                          zsm424    0u      CHR              136,3      0t0          6 [01;31m[K/dev[m[K/pts/3
+lsof      36090                          zsm424    2u      CHR              136,3      0t0          6 [01;31m[K/dev[m[K/pts/3
+grep      36091                          zsm424    1u      CHR              136,3      0t0          6 [01;31m[K/dev[m[K/pts/3
+grep      36091                          zsm424    2u      CHR              136,3      0t0          6 [01;31m[K/dev[m[K/pts/3
+[?2004h]0;zsm424@node-0: ~[01;32mzsm424@node-0[00m:[01;34m~[00m$ [K]0;zsm424@node-0: ~[01;32mzsm424@node-0[00m:[01;34m~[00m$ lsof | grep /dev
+[?2004lsystemd   27136                          zsm424    0r      CHR                1,3      0t0          5 [01;31m[K/dev[m[K/null
+bash      27168                          zsm424    0u      CHR              136,0      0t0          3 [01;31m[K/dev[m[K/pts/0
+bash      27168                          zsm424    1u      CHR              136,0      0t0          3 [01;31m[K/dev[m[K/pts/0
+bash      27168                          zsm424    2u      CHR              136,0      0t0          3 [01;31m[K/dev[m[K/pts/0
+bash      27168                          zsm424  255u      CHR              136,0      0t0          3 [01;31m[K/dev[m[K/pts/0
+bash      34714                          zsm424    0u      CHR              136,1      0t0          4 [01;31m[K/dev[m[K/pts/1
+bash      34714                          zsm424    1u      CHR              136,1      0t0          4 [01;31m[K/dev[m[K/pts/1
+bash      34714                          zsm424    2u      CHR              136,1      0t0          4 [01;31m[K/dev[m[K/pts/1
+bash      34714                          zsm424  255u      CHR              136,1      0t0          4 [01;31m[K/dev[m[K/pts/1
+script    36062                          zsm424    0u      CHR              136,0      0t0          3 [01;31m[K/dev[m[K/pts/0
+script    36062                          zsm424    1u      CHR              136,0      0t0          3 [01;31m[K/dev[m[K/pts/0
+script    36062                          zsm424    2u      CHR              136,0      0t0          3 [01;31m[K/dev[m[K/pts/0
+script    36062                          zsm424    3u      CHR                5,2      0t0         87 [01;31m[K/dev[m[K/ptmx
+script    36062                          zsm424    4u      CHR              136,2      0t0          5 [01;31m[K/dev[m[K/pts/2
+bash      36063                          zsm424    0u      CHR              136,2      0t0          5 [01;31m[K/dev[m[K/pts/2
+bash      36063                          zsm424    1u      CHR              136,2      0t0          5 [01;31m[K/dev[m[K/pts/2
+bash      36063                          zsm424    2u      CHR              136,2      0t0          5 [01;31m[K/dev[m[K/pts/2
+bash      36063                          zsm424  255u      CHR              136,2      0t0          5 [01;31m[K/dev[m[K/pts/2
+strace    36070                          zsm424    2u      CHR              136,2      0t0          5 [01;31m[K/dev[m[K/pts/2
+cat       36073                          zsm424    0u      CHR              136,2      0t0          5 [01;31m[K/dev[m[K/pts/2
+cat       36073                          zsm424    2u      CHR              136,2      0t0          5 [01;31m[K/dev[m[K/pts/2
+script    36075                          zsm424    0u      CHR              136,2      0t0          5 [01;31m[K/dev[m[K/pts/2
+script    36075                          zsm424    1u      CHR              136,2      0t0          5 [01;31m[K/dev[m[K/pts/2
+script    36075                          zsm424    2u      CHR              136,2      0t0          5 [01;31m[K/dev[m[K/pts/2
+script    36075                          zsm424    3u      CHR                5,2      0t0         87 [01;31m[K/dev[m[K/ptmx
+script    36075                          zsm424    4u      CHR              136,3      0t0          6 [01;31m[K/dev[m[K/pts/3
+bash      36076                          zsm424    0u      CHR              136,3      0t0          6 [01;31m[K/dev[m[K/pts/3
+bash      36076                          zsm424    1u      CHR              136,3      0t0          6 [01;31m[K/dev[m[K/pts/3
+bash      36076                          zsm424    2u      CHR              136,3      0t0          6 [01;31m[K/dev[m[K/pts/3
+bash      36076                          zsm424  255u      CHR              136,3      0t0          6 [01;31m[K/dev[m[K/pts/3
+lsof      36095                          zsm424    0u      CHR              136,3      0t0          6 [01;31m[K/dev[m[K/pts/3
+lsof      36095                          zsm424    2u      CHR              136,3      0t0          6 [01;31m[K/dev[m[K/pts/3
+grep      36096                          zsm424    1u      CHR              136,3      0t0          6 [01;31m[K/dev[m[K/pts/3
+grep      36096                          zsm424    2u      CHR              136,3      0t0          6 [01;31m[K/dev[m[K/pts/3
+[?2004h]0;zsm424@node-0: ~[01;32mzsm424@node-0[00m:[01;34m~[00m$ [K]0;zsm424@node-0: ~[01;32mzsm424@node-0[00m:[01;34m~[00m$ [K]0;zsm424@node-0: ~[01;32mzsm424@node-0[00m:[01;34m~[00m$ [K]0;zsm424@node-0: ~[01;32mzsm424@node-0[00m:[01;34m~[00m$ [K]0;zsm424@node-0: ~[01;32mzsm424@node-0[00m:[01;34m~[00m$ [K]0;zsm424@node-0: ~[01;32mzsm424@node-0[00m:[01;34m~[00m$ [K]0;zsm424@node-0: ~[01;32mzsm424@node-0[00m:[01;34m~[00m$ [K]0;zsm424@node-0: ~[01;32mzsm424@node-0[00m:[01;34m~[00m$ [K]0;zsm424@node-0: ~[01;32mzsm424@node-0[00m:[01;34m~[00m$ [K]0;zsm424@node-0: ~[01;32mzsm424@node-0[00m:[01;34m~[00m$ [K]0;zsm424@node-0: ~[01;32mzsm424@node-0[00m:[01;34m~[00m$ [K]0;zsm424@node-0: ~[01;32mzsm424@node-0[00m:[01;34m~[00m$ [K]0;zsm424@node-0: ~[01;32mzsm424@node-0[00m:[01;34m~[00m$ [K]0;zsm424@node-0: ~[01;32mzsm424@node-0[00m:[01;34m~[00m$ [K]0;zsm424@node-0: ~[01;32mzsm424@node-0[00m:[01;34m~[00m$ [K]0;zsm424@node-0: ~[01;32mzsm424@node-0[00m:[01;34m~[00m$ lsof | grep /devstrace cat - > new_file[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[Cudo ssh-copy-id -i id_rsa.pub zsm424@node-0.zsm424-client.os-class-pg0.wisc.cloudlab.us[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[14Pzsm424@node-0.zsm424-client.os-class-pg0.wisc.cloudlab.us[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C-i id_rsa.pub zsm424@node-0.zsm424-client.os-class-pg0.wisc.cloudlab.us[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[Ctrace cat - > new_file[K[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[7Plsof | grep /dev[Klsof | grep /dev
+[?2004lsystemd   27136                          zsm424    0r      CHR                1,3      0t0          5 [01;31m[K/dev[m[K/null
+bash      27168                          zsm424    0u      CHR              136,0      0t0          3 [01;31m[K/dev[m[K/pts/0
+bash      27168                          zsm424    1u      CHR              136,0      0t0          3 [01;31m[K/dev[m[K/pts/0
+bash      27168                          zsm424    2u      CHR              136,0      0t0          3 [01;31m[K/dev[m[K/pts/0
+bash      27168                          zsm424  255u      CHR              136,0      0t0          3 [01;31m[K/dev[m[K/pts/0
+bash      34714                          zsm424    0u      CHR              136,1      0t0          4 [01;31m[K/dev[m[K/pts/1
+bash      34714                          zsm424    1u      CHR              136,1      0t0          4 [01;31m[K/dev[m[K/pts/1
+bash      34714                          zsm424    2u      CHR              136,1      0t0          4 [01;31m[K/dev[m[K/pts/1
+bash      34714                          zsm424  255u      CHR              136,1      0t0          4 [01;31m[K/dev[m[K/pts/1
+script    36062                          zsm424    0u      CHR              136,0      0t0          3 [01;31m[K/dev[m[K/pts/0
+script    36062                          zsm424    1u      CHR              136,0      0t0          3 [01;31m[K/dev[m[K/pts/0
+script    36062                          zsm424    2u      CHR              136,0      0t0          3 [01;31m[K/dev[m[K/pts/0
+script    36062                          zsm424    3u      CHR                5,2      0t0         87 [01;31m[K/dev[m[K/ptmx
+script    36062                          zsm424    4u      CHR              136,2      0t0          5 [01;31m[K/dev[m[K/pts/2
+bash      36063                          zsm424    0u      CHR              136,2      0t0          5 [01;31m[K/dev[m[K/pts/2
+bash      36063                          zsm424    1u      CHR              136,2      0t0          5 [01;31m[K/dev[m[K/pts/2
+bash      36063                          zsm424    2u      CHR              136,2      0t0          5 [01;31m[K/dev[m[K/pts/2
+bash      36063                          zsm424  255u      CHR              136,2      0t0          5 [01;31m[K/dev[m[K/pts/2
+strace    36070                          zsm424    2u      CHR              136,2      0t0          5 [01;31m[K/dev[m[K/pts/2
+cat       36073                          zsm424    0u      CHR              136,2      0t0          5 [01;31m[K/dev[m[K/pts/2
+cat       36073                          zsm424    2u      CHR              136,2      0t0          5 [01;31m[K/dev[m[K/pts/2
+script    36075                          zsm424    0u      CHR              136,2      0t0          5 [01;31m[K/dev[m[K/pts/2
+script    36075                          zsm424    1u      CHR              136,2      0t0          5 [01;31m[K/dev[m[K/pts/2
+script    36075                          zsm424    2u      CHR              136,2      0t0          5 [01;31m[K/dev[m[K/pts/2
+script    36075                          zsm424    3u      CHR                5,2      0t0         87 [01;31m[K/dev[m[K/ptmx
+script    36075                          zsm424    4u      CHR              136,3      0t0          6 [01;31m[K/dev[m[K/pts/3
+bash      36076                          zsm424    0u      CHR              136,3      0t0          6 [01;31m[K/dev[m[K/pts/3
+bash      36076                          zsm424    1u      CHR              136,3      0t0          6 [01;31m[K/dev[m[K/pts/3
+bash      36076                          zsm424    2u      CHR              136,3      0t0          6 [01;31m[K/dev[m[K/pts/3
+bash      36076                          zsm424  255u      CHR              136,3      0t0          6 [01;31m[K/dev[m[K/pts/3
+lsof      36138                          zsm424    0u      CHR              136,3      0t0          6 [01;31m[K/dev[m[K/pts/3
+lsof      36138                          zsm424    2u      CHR              136,3      0t0          6 [01;31m[K/dev[m[K/pts/3
+grep      36139                          zsm424    1u      CHR              136,3      0t0          6 [01;31m[K/dev[m[K/pts/3
+grep      36139                          zsm424    2u      CHR              136,3      0t0          6 [01;31m[K/dev[m[K/pts/3
+[?2004h]0;zsm424@node-0: ~[01;32mzsm424@node-0[00m:[01;34m~[00m$ lsof | grep /devstrace cat - > new_file[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[Cudo ssh-copy-id -i id_rsa.pub zsm424@node-0.zsm424-client.os-class-pg0.wisc.cloudlab.us[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[14Pzsm424@node-0.zsm424-client.os-class-pg0.wisc.cloudlab.us[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[23P-i id_rsa.pub zsm424@155.98.36.107zsm424@node-0.zsm424-client.os-class-pg0.wisc.cloudlab.us[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C-i id_rsa.pub zsm424@node-0.zsm424-client.os-class-pg0.wisc.cloudlab.us[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[Ctrace cat - > new_file[K[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[7Plsof | grep /dev[Klsof | grep /devstrace cat - > new_file[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[Cudo ssh-copy-id -i id_rsa.pub zsm424@node-0.zsm424-client.os-class-pg0.wisc.cloudlab.us[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[14Pzsm424@node-0.zsm424-client.os-class-pg0.wisc.cloudlab.us[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[23P-i id_rsa.pub zsm424@155.98.36.107node-0.zsm424-client.os-class-pg0.wisc.cloudlab.us[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[14Pzsm424@node-0.zsm424-client.os-class-pg0.wisc.cloudlab.us[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C# ssh-add[Ksudo ssh-copy-id zsm424@node-0.zsm424-client.os-class-pg0.wisc.cloudlab.us[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[5P[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C-i zsm424@node-0.zsm424-client.os-class-pg0.wisc.cloudlab.us[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[3Pzsm424@node-0.zsm424-client.os-class-pg0.wisc.cloudlab.us[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[34P-i zsm424@155.98.36.107[3Pzsm424@155.98.36.107-i 155.98.36.107@SHA256:OrOMz34+5yjmHuxSIKS/8ULrrukcu5kIspRGn37DP6c[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[2@udo ssh-copy-id[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[5P[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C zsm424@node-0.zsm424-client.os-class-pg0.wisc.cloudlab.us[Aifconfig[K
+[K[A[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[Cssh-copy-id 155.98.36.107@SHA256:OrOMz34+5yjmHuxSIKS/8ULrrukcu5kIspRGn37DP6c zsm424@node-0.zsm424-client.os-class-pg0.wisc.cloudlab.us[A[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[K
+[K[A[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[5@udo s[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[2Psh-copy-id -i[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[Czsm424@155.98.36.107[K-i zsm424@155.98.36.107zsm424@node-0.zsm424-client.os-class-pg0.wisc.cloudlab.us[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C-i zsm424@node-0.zsm424-client.os-class-pg0.wisc.cloudlab.us[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[3Pzsm424@node-0.zsm424-client.os-class-pg0.wisc.cloudlab.us[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[5@udo s[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C# ssh-add[Ksudo ssh-copy-id zsm424@node-0.zsm424-client.os-class-pg0.wisc.cloudlab.us[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C-i id_rsa.pub zsm424@node-0.zsm424-client.os-class-pg0.wisc.cloudlab.us155.98.36.107[Kzsm424@node-0.zsm424-client.os-class-pg0.wisc.cloudlab.us[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C-i id_rsa.pub zsm424@node-0.zsm424-client.os-class-pg0.wisc.cloudlab.us[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[Ctrace cat - > new_file[K[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[7Plsof | grep /dev[Klsof | grep /devstrace cat - > new_file[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[Cudo ssh-copy-id -i id_rsa.pub zsm424@node-0.zsm424-client.os-class-pg0.wisc.cloudlab.us[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[14Pzsm424@node-0.zsm424-client.os-class-pg0.wisc.cloudlab.us[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C-i id_rsa.pub zsm424@node-0.zsm424-client.os-class-pg0.wisc.cloudlab.us[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[Ctrace cat - > new_file[K[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[7Plsof | grep /dev[Klsof | grep /dev[Kdd if=/dev/zero of=largefile bs=1M count=500
+[?2004l500+0 records in
+500+0 records out
+524288000 bytes (524 MB, 500 MiB) copied, 0.524489 s, 1000 MB/s
+[?2004h]0;zsm424@node-0: ~[01;32mzsm424@node-0[00m:[01;34m~[00m$ dd if=/dev/zero of=largefile bs=1M count=500[1P[1P[1P[1P[1P[1@s[1@m[1@a[1@l[1@l[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[K[K[K24[K50
+[?2004l250+0 records in
+250+0 records out
+262144000 bytes (262 MB, 250 MiB) copied, 0.346902 s, 756 MB/s
+[?2004h]0;zsm424@node-0: ~[01;32mzsm424@node-0[00m:[01;34m~[00m$ dd if=/dev/zero of=smallfile bs=1M count=250[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[Kdd if=/dev/zero of=smallfile bs=1M count=250largefile bs=1M count=500[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[28Plsof | grep /devstrace cat - > new_file[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[Cudo ssh-copy-id -i id_rsa.pub zsm424@node-0.zsm424-client.os-class-pg0.wisc.cloudlab.us[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[14Pzsm424@node-0.zsm424-client.os-class-pg0.wisc.cloudlab.us[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[23P-i id_rsa.pub zsm424@155.98.36.107node-0.zsm424-client.os-class-pg0.wisc.cloudlab.us[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[14Pzsm424@node-0.zsm424-client.os-class-pg0.wisc.cloudlab.us[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C# ssh-add[Ksudo ssh-copy-id zsm424@node-0.zsm424-client.os-class-pg0.wisc.cloudlab.us[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[5P[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[5@udo s[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C# ssh-add[Ksudo ssh-copy-id zsm424@node-0.zsm424-client.os-class-pg0.wisc.cloudlab.us[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C-i id_rsa.pub zsm424@node-0.zsm424-client.os-class-pg0.wisc.cloudlab.us155.98.36.107[Kzsm424@node-0.zsm424-client.os-class-pg0.wisc.cloudlab.us[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C-i id_rsa.pub zsm424@node-0.zsm424-client.os-class-pg0.wisc.cloudlab.us[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[Ctrace cat - > new_file[K[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[7Plsof | grep /devdd if=/dev/zero of=largefile bs=1M count=500smallfile bs=1M count=250[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[Kcd /netfs[K[K[K[K[K[K[K[K[Kls -la
+[?2004ltotal 768880
+drwxr-xr-x 5 zsm424 os--zelal-mustaf      4096 Oct 25 18:52 [0m[01;34m.[0m
+drwxr-xr-x 4 root   root                  4096 Oct 18 15:26 [01;34m..[0m
+-rw------- 1 zsm424 os--zelal-mustaf      1130 Oct 19 02:59 .bash_history
+-rw-r--r-- 1 zsm424 os--zelal-mustaf       220 Jan  6  2022 .bash_logout
+-rw-r--r-- 1 zsm424 os--zelal-mustaf      3771 Jan  6  2022 .bashrc
+drwx------ 2 zsm424 os--zelal-mustaf      4096 Oct 18 21:49 [01;34m.cache[0m
+-rw-r--r-- 1 zsm424 os--zelal-mustaf        15 Oct 18 15:26 .forward
+-rw-r--r-- 1 zsm424 os--zelal-mustaf 524288000 Oct 25 18:51 largefile
+drwxr-xr-x 3 zsm424 os--zelal-mustaf      4096 Oct 25 15:37 [01;34m.local[0m
+-rwxr-xr-x 1 zsm424 os--zelal-mustaf     17064 Oct 25 16:06 [01;32mnetfs[0m
+-rw-r--r-- 1 zsm424 os--zelal-mustaf      2278 Oct 25 16:28 netfs.c
+-rw-r--r-- 1 zsm424 os--zelal-mustaf         7 Oct 25 17:42 new_file
+-rw-r--r-- 1 zsm424 os--zelal-mustaf       807 Jan  6  2022 .profile
+-rw-r--r-- 1 zsm424 os--zelal-mustaf       606 Oct 25 15:55 program.c
+-rw-r--r-- 1 zsm424 os--zelal-mustaf     32768 Oct 25 19:05 session_record
+-rw-r--r-- 1 zsm424 os--zelal-mustaf 262144000 Oct 25 18:52 smallfile
+drwx------ 2 zsm424 os--zelal-mustaf      4096 Oct 18 15:26 [01;34m.ssh[0m
+-rwxr-xr-x 1 zsm424 os--zelal-mustaf     16280 Oct 25 16:20 [01;32mtestprog[0m
+[?2004h]0;zsm424@node-0: ~[01;32mzsm424@node-0[00m:[01;34m~[00m$ cat /etc/exports
+[?2004l# /etc/exports: the access control list for filesystems which may be exported
+#		to NFS clients.  See exports(5).
+#
+# Example for NFSv2 and NFSv3:
+# /srv/homes       hostname1(rw,sync,no_subtree_check) hostname2(ro,sync,no_subtree_check)
+#
+# Example for NFSv4:
+# /srv/nfs4        gss/krb5i(rw,sync,fsid=0,crossmnt,no_subtree_check)
+# /srv/nfs4/homes  gss/krb5i(rw,sync,no_subtree_check)
+#
+/nfs_share *(rw,sync,no_subtree_check)
+/nfs_share *(rw,sync,no_subtree_check)
+[?2004h]0;zsm424@node-0: ~[01;32mzsm424@node-0[00m:[01;34m~[00m$ sudo service nfs-kernel-server restart
+[?2004l[?2004h]0;zsm424@node-0: ~[01;32mzsm424@node-0[00m:[01;34m~[00m$ sudo chmod 777 /nfs_share
+[?2004l[?2004h]0;zsm424@node-0: ~[01;32mzsm424@node-0[00m:[01;34m~[00m$ sudo chmod 777 /nfs_shareservice nfs-kernel-server restart
+[?2004l[?2004h]0;zsm424@node-0: ~[01;32mzsm424@node-0[00m:[01;34m~[00m$ sudo service nfs-kernel-server restart[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[13Pchmod 777 /nfs_shareservice nfs-kernel-server restart[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[22Pcat /etc/exports[10Pls -ladd if=/dev/zero of=smallfile bs=1M count=250largefile bs=1M count=500[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[28Plsof | grep /devstrace cat - > new_file[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[7Plsof | grep /devdd if=/dev/zero of=largefile bs=1M count=500smallfile bs=1M count=250[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[Cls -la[Kcat /etc/exportssudo serv[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[5@udo s[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C# ssh-add[Ksudo ssh-copy-id zsm424@node-0.zsm424-client.os-class-pg0.wisc.cloudlab.us[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C-i id_rsa.pub zsm424@node-0.zsm424-client.os-class-pg0.wisc.cloudlab.us155.98.36.107[Kzsm424@node-0.zsm424-client.os-class-pg0.wisc.cloudlab.us[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C-i id_rsa.pub zsm424@node-0.zsm424-client.os-class-pg0.wisc.cloudlab.us[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[Ctrace cat - > new_file[K[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[7Plsof | grep /devdd if=/dev/zero of=largefile bs=1M count=500smallfile bs=1M count=250[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[Kcd /netfs[K[K[K[K[K[K[K[K[Kls -la
+[?2004ltotal 768880
+drwxr-xr-x 5 zsm424 os--zelal-mustaf      4096 Oct 25 18:52 [0m[01;34m.[0m
+drwxr-xr-x 4 root   root                  4096 Oct 18 15:26 [01;34m..[0m
+-rw------- 1 zsm424 os--zelal-mustaf      1130 Oct 19 02:59 .bash_history
+-rw-r--r-- 1 zsm424 os--zelal-mustaf       220 Jan  6  2022 .bash_logout
+-rw-r--r-- 1 zsm424 os--zelal-mustaf      3771 Jan  6  2022 .bashrc
+drwx------ 2 zsm424 os--zelal-mustaf      4096 Oct 18 21:49 [01;34m.cache[0m
+-rw-r--r-- 1 zsm424 os--zelal-mustaf        15 Oct 18 15:26 .forward
+-rw-r--r-- 1 zsm424 os--zelal-mustaf 524288000 Oct 25 18:51 largefile
+drwxr-xr-x 3 zsm424 os--zelal-mustaf      4096 Oct 25 15:37 [01;34m.local[0m
+-rwxr-xr-x 1 zsm424 os--zelal-mustaf     17064 Oct 25 16:06 [01;32mnetfs[0m
+-rw-r--r-- 1 zsm424 os--zelal-mustaf      2278 Oct 25 16:28 netfs.c
+-rw-r--r-- 1 zsm424 os--zelal-mustaf         7 Oct 25 17:42 new_file
+-rw-r--r-- 1 zsm424 os--zelal-mustaf       807 Jan  6  2022 .profile
+-rw-r--r-- 1 zsm424 os--zelal-mustaf       606 Oct 25 15:55 program.c
+-rw-r--r-- 1 zsm424 os--zelal-mustaf     32768 Oct 25 19:05 session_record
+-rw-r--r-- 1 zsm424 os--zelal-mustaf 262144000 Oct 25 18:52 smallfile
+drwx------ 2 zsm424 os--zelal-mustaf      4096 Oct 18 15:26 [01;34m.ssh[0m
+-rwxr-xr-x 1 zsm424 os--zelal-mustaf     16280 Oct 25 16:20 [01;32mtestprog[0m
+[?2004h]0;zsm424@node-0: ~[01;32mzsm424@node-0[00m:[01;34m~[00m$ cat /etc/exports
+[?2004l# /etc/exports: the access control list for filesystems which may be exported
+#		to NFS clients.  See exports(5).
+#
+# Example for NFSv2 and NFSv3:
+# /srv/homes       hostname1(rw,sync,no_subtree_check) hostname2(ro,sync,no_subtree_check)
+#
+# Example for NFSv4:
+# /srv/nfs4        gss/krb5i(rw,sync,fsid=0,crossmnt,no_subtree_check)
+# /srv/nfs4/homes  gss/krb5i(rw,sync,no_subtree_check)
+#
+/nfs_share *(rw,sync,no_subtree_check)
+/nfs_share *(rw,sync,no_subtree_check)
+[?2004h]0;zsm424@node-0: ~[01;32mzsm424@node-0[00m:[01;34m~[00m$ sudo service nfs-kernel-server restart
+[?2004l[?2004h]0;zsm424@node-0: ~[01;32mzsm424@node-0[00m:[01;34m~[00m$ sudo chmod 777 /nfs_share
+[?2004l[?2004h]0;zsm424@node-0: ~[01;32mzsm424@node-0[00m:[01;34m~[00m$ sudo chmod 777 /nfs_shareservice nfs-kernel-server restart
+[?2004l[?2004h]0;zsm424@node-0: ~[01;32mzsm424@node-0[00m:[01;34m~[00m$ sudo service nfs-kernel-server restart[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[13Pchmod 777 /nfs_shareservice nfs-kernel-server restart[C[C[C[C[C[C[C[C[C[C[C[C[C[C
