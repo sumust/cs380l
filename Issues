@@ -1,0 +1,135 @@
+Trying apager with test0: 
+
+(gdb) info proc mappings
+process 15731
+Mapped address spaces:
+
+          Start Addr           End Addr       Size     Offset  Perms  objfile
+            0x400000           0x498000    0x98000        0x0  rwxp
+            0x498000           0x499000     0x1000    0x98000  r-xp   /users/zsm424/apager
+            0x499000           0x4c2000    0x29000    0x99000  r--p   /users/zsm424/apager
+            0x4c2000           0x4c6000     0x4000    0xc1000  r--p   /users/zsm424/apager
+            0x4c6000           0x4c9000     0x3000    0xc5000  rw-p   /users/zsm424/apager
+            0x4c9000           0x4f0000    0x27000        0x0  rw-p   [heap]
+      0x7ffff7ff1000     0x7ffff7ff9000     0x8000        0x0  rw-p
+      0x7ffff7ff9000     0x7ffff7ffd000     0x4000        0x0  r--p   [vvar]
+      0x7ffff7ffd000     0x7ffff7fff000     0x2000        0x0  r-xp   [vdso]
+      0x7ffffffde000     0x7ffffffff000    0x21000        0x0  rw-p   [stack]
+  0xffffffffff600000 0xffffffffff601000     0x1000        0x0  --xp   [vsyscall]
+
+(gdb) info registers
+rax            0x40a700            4237056
+rbx            0x7fffffffe550      140737488348496
+rcx            0x450b97            4524951
+rdx            0x7                 7
+rsi            0x9645d             615517
+rdi            0x0                 0
+rbp            0x7fffffffe240      0x7fffffffe240
+rsp            0x7fffffffe200      0x7fffffffe200
+r8             0xffffffff          4294967295
+r9             0x0                 0
+r10            0x32                50
+r11            0x246               582
+r12            0x2                 2
+r13            0x7fffffffe538      140737488348472
+r14            0x4c27d0            4990928
+r15            0x1                 1
+rip            0x498000            0x498000 <free_mem+368>
+eflags         0x246               [ PF ZF IF ]
+cs             0x33                51
+ss             0x2b                43
+ds             0x0                 0
+es             0x0                 0
+fs             0x0                 0
+gs             0x0                 0
+
+(gdb) x/20gx $rsp
+0x7fffffffe200: 0x000000000049800c      0x00000000004017b3
+0x7fffffffe210: 0x00007fffffffe270      0x0000000300000000
+0x7fffffffe220: 0x0000000000401000      0x0000000000000000
+0x7fffffffe230: 0x000000000009645d      0x0000000000400000
+0x7fffffffe240: 0x00007fffffffe300      0x0000000000401c13
+0x7fffffffe250: 0x00007fffffffe330      0x00007fffffffe796
+0x7fffffffe260: 0x0000000000000005      0x0000000300000001
+0x7fffffffe270: 0x0000000500000001      0x0000000000001000
+0x7fffffffe280: 0x0000000000401000      0x0000000000401000
+0x7fffffffe290: 0x000000000009645d      0x000000000009645d
+
+Information on the test file:
+
+Command: readelf -h test0
+ELF Header:
+  Magic:   7f 45 4c 46 02 01 01 03 00 00 00 00 00 00 00 00
+  Class:                             ELF64
+  Data:                              2's complement, little endian
+  Version:                           1 (current)
+  OS/ABI:                            UNIX - GNU
+  ABI Version:                       0
+  Type:                              EXEC (Executable file)
+  Machine:                           Advanced Micro Devices X86-64
+  Version:                           0x1
+  Entry point address:               0x401620
+  Start of program headers:          64 (bytes into file)
+  Start of section headers:          898168 (bytes into file)
+  Flags:                             0x0
+  Size of this header:               64 (bytes)
+  Size of program headers:           56 (bytes)
+  Number of program headers:         10
+  Size of section headers:           64 (bytes)
+  Number of section headers:         32
+  Section header string table index: 31
+
+Command: readelf -l test0
+Elf file type is EXEC (Executable file)
+Entry point 0x401620
+There are 10 program headers, starting at offset 64
+Program Headers:
+  Type           Offset             VirtAddr           PhysAddr
+                 FileSiz            MemSiz              Flags  Align
+  LOAD           0x0000000000000000 0x0000000000400000 0x0000000000400000
+                 0x0000000000000528 0x0000000000000528  R      0x1000
+  LOAD           0x0000000000001000 0x0000000000401000 0x0000000000401000
+                 0x000000000009645d 0x000000000009645d  R E    0x1000
+  LOAD           0x0000000000098000 0x0000000000498000 0x0000000000498000
+                 0x00000000000284be 0x00000000000284be  R      0x1000
+  LOAD           0x00000000000c07b0 0x00000000004c17b0 0x00000000004c17b0
+                 0x0000000000005ae0 0x000000000000b490  RW     0x1000
+  NOTE           0x0000000000000270 0x0000000000400270 0x0000000000400270
+                 0x0000000000000030 0x0000000000000030  R      0x8
+  NOTE           0x00000000000002a0 0x00000000004002a0 0x00000000004002a0
+                 0x0000000000000044 0x0000000000000044  R      0x4
+  TLS            0x00000000000c07b0 0x00000000004c17b0 0x00000000004c17b0
+                 0x0000000000000020 0x0000000000000068  R      0x8
+  GNU_PROPERTY   0x0000000000000270 0x0000000000400270 0x0000000000400270
+                 0x0000000000000030 0x0000000000000030  R      0x8
+  GNU_STACK      0x0000000000000000 0x0000000000000000 0x0000000000000000
+                 0x0000000000000000 0x0000000000000000  RW     0x10
+  GNU_RELRO      0x00000000000c07b0 0x00000000004c17b0 0x00000000004c17b0
+                 0x0000000000003850 0x0000000000003850  R      0x1
+
+ Section to Segment mapping:
+  Segment Sections...
+   00     .note.gnu.property .note.gnu.build-id .note.ABI-tag .rela.plt
+   01     .init .plt .text __libc_freeres_fn .fini
+   02     .rodata .stapsdt.base .eh_frame .gcc_except_table
+   03     .tdata .init_array .fini_array .data.rel.ro .got .got.plt .data __libc_subfreeres __libc_IO_vtables __libc_atexit .bss __libc_freeres_ptrs
+   04     .note.gnu.property
+   05     .note.gnu.build-id .note.ABI-tag
+   06     .tdata .tbss
+   07     .note.gnu.property
+   08
+   09     .tdata .init_array .fini_array .data.rel.ro .got
+
+POTENTIAL ISSUES I AM INVESTIGATING:
+Memory Mapping and Entry Point:
+The readelf output shows the entry point of test0 is 0x401620, which should be the address the loader jumps to.
+However, the GDB output shows a segmentation fault occurring at 0x498000, which is within the third LOAD segment (0x0000000000098000 - 0x0000000000498000).
+This discrepancy suggests that either the entry point is not correctly set in the loader, or there's a problem in how the segments are loaded
+
+Loader Memory Mapping:
+The info proc mappings output shows that the address 0x498000 is mapped with read and execute permissions, which is correct. 
+However, the fault occurs in free_mem function, which is unusual since test0 is a simple program and shouldn't be executing a free_mem function at its start.
+Could this indicate that the loader's code or data is being executed instead of test0. The loader and the loaded program might overlap in memory and have conflicting addresses? 
+
+Stack Setup:
+Is the stack set up correctly? 
