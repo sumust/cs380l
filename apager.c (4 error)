@@ -1,0 +1,145 @@
+#define _GNU_SOURCE
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <string.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <elf.h>
+
+#define PAGE_SIZE 0x1000
+#define STACK_SIZE (8 * PAGE_SIZE)
+
+// Auxiliary vector types
+#define AT_NULL 0    // End of auxiliary vector
+#define AT_ENTRY 9   // Program entry point
+
+void load_segment(int fd, Elf64_Phdr *phdr) {
+    Elf64_Addr aligned_addr = phdr->p_vaddr & ~(PAGE_SIZE - 1);
+    size_t offset = phdr->p_vaddr - aligned_addr;
+    size_t total_size = phdr->p_memsz + offset;
+
+    void *segment = mmap((void *)aligned_addr, total_size,
+                         PROT_READ | PROT_WRITE | PROT_EXEC,
+                         MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
+
+    if (segment == MAP_FAILED) {
+        perror("mmap");
+        exit(EXIT_FAILURE);
+    }
+
+    lseek(fd, phdr->p_offset, SEEK_SET);
+    if (read(fd, segment + offset, phdr->p_filesz) != phdr->p_filesz) {
+        perror("read");
+        exit(EXIT_FAILURE);
+    }
+
+    if (phdr->p_memsz > phdr->p_filesz) {
+        memset(segment + offset + phdr->p_filesz, 0, phdr->p_memsz - phdr->p_filesz);
+    }
+}
+
+void *setup_stack(void *stack_top, char *const argv[], char *const envp[], Elf64_Addr entry_point) {
+    int argc = 0;
+    while (argv[argc] != NULL) argc++;
+
+    stack_top -= (argc + 1) * sizeof(char *);
+    char **new_argv = stack_top;
+
+    for (int i = 0; i < argc; i++) {
+        size_t size = strlen(argv[i]) + 1;
+        stack_top -= size;
+        strcpy(stack_top, argv[i]);
+        new_argv[i] = stack_top;
+    }
+    new_argv[argc] = NULL;
+
+    // Set up auxiliary vectors
+    Elf64_auxv_t *auxv = (Elf64_auxv_t *)(new_argv + argc + 1);
+    auxv[0].a_type = AT_ENTRY;
+    auxv[0].a_un.a_val = entry_point;
+    auxv[1].a_type = AT_NULL;
+    auxv[1].a_un.a_val = 0;
+
+    return auxv + 2;
+}
+
+void load_program(const char *program, Elf64_Addr *entry_point) {
+    int fd = open(program, O_RDONLY);
+    if (fd < 0) {
+        perror("open");
+        exit(EXIT_FAILURE);
+    }
+
+    Elf64_Ehdr ehdr;
+    if (read(fd, &ehdr, sizeof(ehdr)) != sizeof(ehdr)) {
+        perror("read");
+        close(fd);
+        exit(EXIT_FAILURE);
+    }
+
+    if (memcmp(ehdr.e_ident, ELFMAG, SELFMAG) != 0 || ehdr.e_ident[EI_CLASS] != ELFCLASS64) {
+        fprintf(stderr, "Invalid ELF file.\n");
+        close(fd);
+        exit(EXIT_FAILURE);
+    }
+
+    for (int i = 0; i < ehdr.e_phnum; ++i) {
+        Elf64_Phdr phdr;
+        lseek(fd, ehdr.e_phoff + i * sizeof(phdr), SEEK_SET);
+        if (read(fd, &phdr, sizeof(phdr)) != sizeof(phdr)) {
+            perror("read");
+            close(fd);
+            exit(EXIT_FAILURE);
+        }
+
+        if (phdr.p_type == PT_LOAD) {
+            load_segment(fd, &phdr);
+        }
+    }
+
+    *entry_point = ehdr.e_entry;
+    close(fd);
+}
+
+int main(int argc, char *argv[], char *envp[]) {
+    if (argc < 2) {
+        fprintf(stderr, "Usage: %s <executable>\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    Elf64_Addr entry_point;
+    void *stack = mmap(NULL, STACK_SIZE, PROT_READ | PROT_WRITE,
+                       MAP_PRIVATE | MAP_ANONYMOUS | MAP_STACK, -1, 0);
+    if (stack == MAP_FAILED) {
+        perror("mmap");
+        exit(EXIT_FAILURE);
+    }
+
+    load_program(argv[1], &entry_point);
+    
+    void *stack_top = setup_stack(stack + STACK_SIZE, argv, envp, entry_point);
+
+    // Ensure 16-byte alignment of the stack before calling the entry point
+    stack_top = (void *)((uintptr_t)stack_top & ~0xF);
+
+    // Zero all registers and jump to the entry point using call/ret semantics
+    asm volatile(
+        "xor %%rax, %%rax\n"
+        "xor %%rbx, %%rbx\n"
+        "xor %%rcx, %%rcx\n"
+        "xor %%rdx, %%rdx\n"
+        "xor %%rsi, %%rsi\n"
+        "xor %%rdi, %%rdi\n"
+        "xor %%rbp, %%rbp\n"
+        "mov %0, %%rsp\n"
+        "ret\n"
+        :
+        : "r"(stack_top)
+        : "memory"
+    );
+
+    // This line should never be reached.
+    return 0;
+}
