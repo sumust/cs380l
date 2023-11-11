@@ -18,10 +18,11 @@
 void load_segment(int fd, Elf64_Phdr *phdr) {
     size_t aligned_addr = phdr->p_vaddr & ~(PAGE_SIZE - 1);
     size_t offset = phdr->p_vaddr - aligned_addr;
-    size_t total_size = phdr->p_filesz + offset;
+    size_t total_size = phdr->p_memsz + offset;
 
-    void *segment = mmap((void *)aligned_addr, total_size + phdr->p_memsz - phdr->p_filesz,
-                         PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
+    void *segment = mmap((void *)aligned_addr, total_size,
+                         PROT_READ | PROT_WRITE | PROT_EXEC,
+                         MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
     if (segment == MAP_FAILED) {
         perror("mmap");
         exit(EXIT_FAILURE);
@@ -31,31 +32,38 @@ void load_segment(int fd, Elf64_Phdr *phdr) {
         perror("pread");
         exit(EXIT_FAILURE);
     }
+
+    if (phdr->p_memsz > phdr->p_filesz) {
+        memset(segment + offset + phdr->p_filesz, 0, phdr->p_memsz - phdr->p_filesz);
+    }
 }
 
 void *setup_stack(void *stack_top, char *const argv[], char *const envp[], Elf64_Addr entry_point) {
-    int argc = 0;
-    while (argv[argc] != NULL) argc++;
+    int argc, envc;
+    for (argc = 0; argv[argc] != NULL; argc++);
+    for (envc = 0; envp[envc] != NULL; envc++);
 
-    stack_top -= (argc + 1) * sizeof(char *);
-    char **new_argv = stack_top;
+    stack_top = (char *)stack_top - sizeof(char *) * (argc + 1 + envc + 1 + 2); // +2 for auxv null terminator
+    char **new_argv = (char **)stack_top;
 
     for (int i = 0; i < argc; i++) {
-        size_t size = strlen(argv[i]) + 1;
-        stack_top -= size;
-        strcpy(stack_top, argv[i]);
-        new_argv[i] = stack_top;
+        new_argv[i] = strdup(argv[i]);
     }
     new_argv[argc] = NULL;
 
-    // Set up auxiliary vectors
-    Elf64_auxv_t *auxv = (Elf64_auxv_t *)(new_argv + argc + 1);
+    char **new_envp = new_argv + argc + 1;
+    for (int i = 0; i < envc; i++) {
+        new_envp[i] = strdup(envp[i]);
+    }
+    new_envp[envc] = NULL;
+
+    Elf64_auxv_t *auxv = (Elf64_auxv_t *)(new_envp + envc + 1);
     auxv[0].a_type = AT_ENTRY;
-    auxv[0].a_un.a_val = entry_point;
+    auxv[0].a_un.a_val = entry_point; // Entry point address
     auxv[1].a_type = AT_NULL;
     auxv[1].a_un.a_val = 0;
 
-    return auxv + 2;
+    return new_argv - 1; // Return the new stack top, pointing to argc
 }
 
 void load_program(const char *program, Elf64_Addr *entry_point) {
@@ -111,7 +119,12 @@ int main(int argc, char *argv[], char *envp[]) {
     }
 
     load_program(argv[1], &entry_point);
-    void *stack_top = setup_stack(stack + STACK_SIZE, argv, envp, entry_point);
+
+    // Align the stack to a 16-byte boundary
+    void *stack_top = (char *)stack + STACK_SIZE;
+    stack_top = (void *)((uintptr_t)stack_top & ~0xF);
+
+    stack_top = setup_stack(stack_top, argv, envp, entry_point);
 
     // Zero all registers and jump to the entry point using call/ret semantics
     asm volatile(
@@ -123,9 +136,9 @@ int main(int argc, char *argv[], char *envp[]) {
         "xor %%rdi, %%rdi\n"
         "xor %%rbp, %%rbp\n"
         "mov %0, %%rsp\n"
-        "ret\n"
+        "call *%1\n"
         :
-        : "r"(stack_top)
+        : "r"(stack_top), "r"(entry_point)
         : "memory"
     );
 
