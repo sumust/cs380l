@@ -16,27 +16,42 @@
 #define AT_ENTRY 9   // Program entry point
 
 void load_segment(int fd, Elf64_Phdr *phdr) {
-    size_t aligned_addr = phdr->p_vaddr & ~(PAGE_SIZE - 1);
-    size_t offset = phdr->p_vaddr - aligned_addr;
-    size_t total_size = phdr->p_memsz + offset;
+    // Align the segment's virtual address down to the nearest page boundary
+    size_t aligned_vaddr = phdr->p_vaddr & ~(PAGE_SIZE - 1);
+    
+    // Calculate the offset within the page where the segment's data starts
+    size_t offset_in_page = phdr->p_vaddr - aligned_vaddr;
+    
+    // Calculate the total size of the memory to be mapped, aligning the end address
+    size_t total_mapped_size = (phdr->p_memsz + offset_in_page + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
 
-    void *segment = mmap((void *)aligned_addr, total_size,
-                         PROT_READ | PROT_WRITE | PROT_EXEC,
+    // Set the memory protection flags
+    int prot = 0;
+    if (phdr->p_flags & PF_R) prot |= PROT_READ;
+    if (phdr->p_flags & PF_W) prot |= PROT_WRITE;
+    if (phdr->p_flags & PF_X) prot |= PROT_EXEC;
+
+    // Map the memory
+    void *segment = mmap((void *)aligned_vaddr, total_mapped_size, prot,
                          MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
     if (segment == MAP_FAILED) {
         perror("mmap");
         exit(EXIT_FAILURE);
     }
 
-    if (pread(fd, segment + offset, phdr->p_filesz, phdr->p_offset) != phdr->p_filesz) {
+    // Load the segment's data from the file
+    ssize_t read_bytes = pread(fd, (char *)segment + offset_in_page, phdr->p_filesz, phdr->p_offset);
+    if (read_bytes != phdr->p_filesz) {
         perror("pread");
         exit(EXIT_FAILURE);
     }
 
+    // Zero out any memory beyond the end of the segment's file data
     if (phdr->p_memsz > phdr->p_filesz) {
-        memset(segment + offset + phdr->p_filesz, 0, phdr->p_memsz - phdr->p_filesz);
+        memset((char *)segment + offset_in_page + phdr->p_filesz, 0, phdr->p_memsz - phdr->p_filesz);
     }
 }
+
 
 void *setup_stack(void *stack_top, char *const argv[], char *const envp[], Elf64_Addr entry_point) {
     int argc, envc;
