@@ -16,22 +16,15 @@
 #define AT_ENTRY 9   // Program entry point
 
 void load_segment(int fd, Elf64_Phdr *phdr) {
-    // Align the segment's virtual address down to the nearest page boundary
     size_t aligned_vaddr = phdr->p_vaddr & ~(PAGE_SIZE - 1);
-    
-    // Calculate the offset within the page where the segment's data starts
     size_t offset_in_page = phdr->p_vaddr - aligned_vaddr;
-    
-    // Calculate the total size of the memory to be mapped, aligning the end address
     size_t total_mapped_size = (phdr->p_memsz + offset_in_page + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
 
-    // Set the memory protection flags
     int prot = 0;
     if (phdr->p_flags & PF_R) prot |= PROT_READ;
     if (phdr->p_flags & PF_W) prot |= PROT_WRITE;
     if (phdr->p_flags & PF_X) prot |= PROT_EXEC;
 
-    // Map the memory
     void *segment = mmap((void *)aligned_vaddr, total_mapped_size, prot,
                          MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
     if (segment == MAP_FAILED) {
@@ -39,34 +32,31 @@ void load_segment(int fd, Elf64_Phdr *phdr) {
         exit(EXIT_FAILURE);
     }
 
-    // Load the segment's data from the file
     ssize_t read_bytes = pread(fd, (char *)segment + offset_in_page, phdr->p_filesz, phdr->p_offset);
     if (read_bytes != phdr->p_filesz) {
         perror("pread");
         exit(EXIT_FAILURE);
     }
 
-    // Zero out any memory beyond the end of the segment's file data
     if (phdr->p_memsz > phdr->p_filesz) {
         memset((char *)segment + offset_in_page + phdr->p_filesz, 0, phdr->p_memsz - phdr->p_filesz);
     }
 }
 
-
 void *setup_stack(void *stack_top, char *const argv[], char *const envp[], Elf64_Addr entry_point) {
     int argc, envc;
-    for (argc = 0; argv[argc] != NULL; argc++);
+    for (argc = 1; argv[argc] != NULL; argc++); // Start from 1 to skip loader's name
     for (envc = 0; envp[envc] != NULL; envc++);
 
     stack_top = (char *)stack_top - sizeof(char *) * (argc + 1 + envc + 1 + 2); // +2 for auxv null terminator
     char **new_argv = (char **)stack_top;
 
-    for (int i = 0; i < argc; i++) {
-        new_argv[i] = strdup(argv[i]);
+    for (int i = 1; i < argc; i++) {
+        new_argv[i - 1] = strdup(argv[i]);
     }
-    new_argv[argc] = NULL;
+    new_argv[argc - 1] = NULL;
 
-    char **new_envp = new_argv + argc + 1;
+    char **new_envp = new_argv + argc;
     for (int i = 0; i < envc; i++) {
         new_envp[i] = strdup(envp[i]);
     }
