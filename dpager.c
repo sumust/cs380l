@@ -5,19 +5,19 @@
 #include <fcntl.h>
 #include <string.h>
 #include <sys/mman.h>
+#include <sys/types.h>
 #include <sys/stat.h>
 #include <elf.h>
 #include <signal.h>
 
 #define PAGE_SIZE 4096
-#define STACK_SIZE (1024 * 1024) // 1MB
+#define STACK_SIZE (1024 * 1024)  // 1MB
 #define MAX_PHDR_COUNT 16
 
-void *program_base = NULL;
-void *program_end = NULL;
 int program_fd = -1;
 Elf64_Phdr phdr_table[MAX_PHDR_COUNT];
 int phdr_count = 0;
+Elf64_Addr entry_point;
 
 void segfault_handler(int sig, siginfo_t *info, void *context) {
     void *fault_addr = info->si_addr;
@@ -25,20 +25,24 @@ void segfault_handler(int sig, siginfo_t *info, void *context) {
 
     for (int i = 0; i < phdr_count; ++i) {
         Elf64_Phdr *phdr = &phdr_table[i];
-        if (phdr->p_type == PT_LOAD) {
-            void *seg_start = (void *)phdr->p_vaddr;
-            void *seg_end = seg_start + phdr->p_memsz;
+        if (phdr->p_type != PT_LOAD) continue;
 
-            if (fault_addr >= seg_start && fault_addr < seg_end) {
-                size_t page_offset = (uintptr_t)fault_addr - (uintptr_t)seg_start;
-                size_t file_page_offset = phdr->p_offset + page_offset;
-                mmap(aligned_addr, PAGE_SIZE, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_FIXED | MAP_PRIVATE, program_fd, file_page_offset - (file_page_offset % PAGE_SIZE));
-                return;
+        void *seg_start = (void *)(phdr->p_vaddr & ~(PAGE_SIZE - 1));
+        void *seg_end = (void *)((phdr->p_vaddr + phdr->p_memsz + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1));
+
+        if (aligned_addr >= seg_start && aligned_addr < seg_end) {
+            size_t offset = aligned_addr - seg_start;
+            size_t file_offset = phdr->p_offset + offset;
+            if (mmap(aligned_addr, PAGE_SIZE, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_FIXED | MAP_PRIVATE, program_fd, file_offset) == MAP_FAILED) {
+                perror("mmap in segfault handler");
+                exit(EXIT_FAILURE);
             }
+            return;
         }
     }
 
-    fprintf(stderr, "Segmentation fault at address: %p\n", fault_addr);
+    // Preserving memory access errors
+    fprintf(stderr, "Segmentation fault (invalid memory access) at address: %p\n", fault_addr);
     exit(EXIT_FAILURE);
 }
 
@@ -68,7 +72,7 @@ void load_program(const char *program_name) {
     }
 
     lseek(program_fd, ehdr.e_phoff, SEEK_SET);
-    for (int i = 0; i < ehdr.e_phnum; ++i) {
+    for (int i = 0; i < ehdr.e_phnum && i < MAX_PHDR_COUNT; ++i) {
         Elf64_Phdr phdr;
         if (read(program_fd, &phdr, sizeof(phdr)) != sizeof(phdr)) {
             perror("read");
@@ -76,57 +80,73 @@ void load_program(const char *program_name) {
         }
 
         if (phdr.p_type == PT_LOAD) {
-            if (phdr_count >= MAX_PHDR_COUNT) {
-                fprintf(stderr, "Too many program headers\n");
-                exit(EXIT_FAILURE);
-            }
-
             phdr_table[phdr_count++] = phdr;
-
-            if (program_base == NULL || (void *)phdr.p_vaddr < program_base) {
-                program_base = (void *)phdr.p_vaddr;
-            }
-
-            if (program_end == NULL || (void *)(phdr.p_vaddr + phdr.p_memsz) > program_end) {
-                program_end = (void *)(phdr.p_vaddr + phdr.p_memsz);
-            }
         }
     }
 
-    // Map only the first page of each LOAD segment
-    for (int i = 0; i < phdr_count; ++i) {
-        Elf64_Phdr *phdr = &phdr_table[i];
-        size_t offset = phdr->p_offset - (phdr->p_offset % PAGE_SIZE);
-        mmap((void *)phdr->p_vaddr, PAGE_SIZE, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_FIXED | MAP_PRIVATE, program_fd, offset);
-    }
+    entry_point = ehdr.e_entry;
+}
 
+void *setup_stack(int argc, char *argv[], char *envp[]) {
     void *stack = mmap(NULL, STACK_SIZE, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_STACK, -1, 0);
     if (stack == MAP_FAILED) {
         perror("mmap stack");
         exit(EXIT_FAILURE);
     }
 
-    void *stack_top = stack + STACK_SIZE - 8;
+    char **new_argv = (char **)(stack + STACK_SIZE - (argc + 1) * sizeof(char *));
+    for (int i = 0; i < argc; i++) {
+        new_argv[i] = strdup(argv[i + 1]);  // Skip the loader's name
+    }
+    new_argv[argc] = NULL;
 
-    asm volatile (
-        "mov %0, %%rsp\n"
-        "jmp *%1\n"
-        :
-        : "r"(stack_top), "r"(ehdr.e_entry)
-        : "memory"
-    );
- 
-    close(program_fd);
-    munmap(stack, STACK_SIZE);
+    // Copy environment variables
+    int envc;
+    for (envc = 0; envp[envc] != NULL; ++envc);
+    char **new_envp = new_argv + argc + 1;
+    for (int i = 0; i < envc; i++) {
+        new_envp[i] = strdup(envp[i]);
+    }
+    new_envp[envc] = NULL;
+
+    // Set up auxiliary vectors
+    Elf64_auxv_t *auxv = (Elf64_auxv_t *)(new_envp + envc + 1);
+    for (; auxv->a_type != AT_NULL; ++auxv) {
+        if (auxv->a_type == AT_PHDR) {
+            auxv->a_un.a_val = (uintptr_t)phdr_table;  // Address of the program header table
+        }
+    }
+
+    return new_argv - 1; // Stack pointer should point to argc
 }
 
-int main(int argc, char *argv[]) {
-    if (argc != 2) {
+int main(int argc, char *argv[], char *envp[]) {
+    if (argc < 2) {
         fprintf(stderr, "Usage: %s <ELF-file>\n", argv[0]);
-        return EXIT_FAILURE;
+        exit(EXIT_FAILURE);
     }
 
     setup_signal_handler();
     load_program(argv[1]);
+
+    // Align the stack to a 16-byte boundary and setup the stack
+    void *stack_top = setup_stack(argc - 1, argv, envp);
+
+    // Zero all registers and jump to the entry point using call/ret semantics
+    asm volatile(
+        "xor %%rax, %%rax\n"
+        "xor %%rbx, %%rbx\n"
+        "xor %%rcx, %%rcx\n"
+        "xor %%rdx, %%rdx\n"
+        "xor %%rsi, %%rsi\n"
+        "xor %%rdi, %%rdi\n"
+        "xor %%rbp, %%rbp\n"
+        "mov %0, %%rsp\n"
+        "call *%1\n"
+        :
+        : "r"(stack_top), "r"(entry_point)
+        : "memory"
+    );
+
     return 0;
 }
