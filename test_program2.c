@@ -1,20 +1,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define LARGE_SIZE (1024 * 1024 * 256) // 256 MB
+
 int main() {
-    printf("Test Program 2 is running...\n");
-    int *array = malloc(100 * sizeof(int));
-    if (!array) {
-        fprintf(stderr, "Memory allocation failed!\n");
+    long *large_array = malloc(LARGE_SIZE * sizeof(long));
+    if (!large_array) {
+        perror("Memory allocation failed");
         return 1;
     }
 
-    // Use the allocated memory to ensure it's there
-    for (int i = 0; i < 100; i++) {
-        array[i] = i;
-    }
+    // Sparse access - only accessing start and end of the array
+    large_array[0] = 1;
+    large_array[LARGE_SIZE - 1] = 2;
 
-    free(array);
-    printf("Memory was successfully allocated and freed.\n");
+    printf("Sparse memory operations done.\n");
+
+    free(large_array);
     return 0;
 }
