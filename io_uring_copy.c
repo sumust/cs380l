@@ -9,8 +9,8 @@
 #include <assert.h>
 #include <sys/ioctl.h>
 
-#define QD  2
-#define BS (16 * 1024)
+#define QD  4
+#define BS (128 * 1024)
 
 // Recursive copying implementating using io_uring 
 // CS380L - Final Project
