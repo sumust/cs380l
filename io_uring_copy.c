@@ -6,6 +6,8 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <liburing.h>
+#include <assert.h>
+#include <sys/ioctl.h>
 
 #define QD  2
 #define BS (16 * 1024)
@@ -48,6 +50,57 @@ static int get_file_size(int fd, off_t *size) {
         return -1;
     }
     return 0;
+}
+
+static int queue_read(struct io_uring *ring, off_t size, off_t offset, int fd) {
+    struct io_uring_sqe *sqe;
+    struct io_data *data;
+
+    data = malloc(size + sizeof(*data));
+    if (!data)
+        return 1;
+
+    sqe = io_uring_get_sqe(ring);
+    if (!sqe) {
+        free(data);
+        return 1;
+    }
+
+    data->read = 1;
+    data->offset = data->first_offset = offset;
+
+    data->iov.iov_base = data + 1;
+    data->iov.iov_len = size;
+    data->first_len = size;
+
+    io_uring_prep_readv(sqe, fd, &data->iov, 1, offset);
+    io_uring_sqe_set_data(sqe, data);
+    return 0;
+}
+
+static void queue_prepped(struct io_uring *ring, struct io_data *data, int fd) {
+    struct io_uring_sqe *sqe;
+
+    sqe = io_uring_get_sqe(ring);
+    assert(sqe);
+
+    if (data->read)
+        io_uring_prep_readv(sqe, fd, &data->iov, 1, data->offset);
+    else
+        io_uring_prep_writev(sqe, fd, &data->iov, 1, data->offset);
+
+    io_uring_sqe_set_data(sqe, data);
+}
+
+static void queue_write(struct io_uring *ring, struct io_data *data, int fd) {
+    data->read = 0;
+    data->offset = data->first_offset;
+
+    data->iov.iov_base = data + 1;
+    data->iov.iov_len = data->first_len;
+
+    queue_prepped(ring, data, fd);
+    io_uring_submit(ring);
 }
 
 static int copy_file_io_uring(int infd, int outfd, struct io_uring *ring, off_t insize) {
@@ -143,57 +196,6 @@ static int copy_file_io_uring(int infd, int outfd, struct io_uring *ring, off_t 
     }
 
     return 0;
-}
-
-static int queue_read(struct io_uring *ring, off_t size, off_t offset, int fd) {
-    struct io_uring_sqe *sqe;
-    struct io_data *data;
-
-    data = malloc(size + sizeof(*data));
-    if (!data)
-        return 1;
-
-    sqe = io_uring_get_sqe(ring);
-    if (!sqe) {
-        free(data);
-        return 1;
-    }
-
-    data->read = 1;
-    data->offset = data->first_offset = offset;
-
-    data->iov.iov_base = data + 1;
-    data->iov.iov_len = size;
-    data->first_len = size;
-
-    io_uring_prep_readv(sqe, fd, &data->iov, 1, offset);
-    io_uring_sqe_set_data(sqe, data);
-    return 0;
-}
-
-static void queue_write(struct io_uring *ring, struct io_data *data, int fd) {
-    data->read = 0;
-    data->offset = data->first_offset;
-
-    data->iov.iov_base = data + 1;
-    data->iov.iov_len = data->first_len;
-
-    queue_prepped(ring, data, fd);
-    io_uring_submit(ring);
-}
-
-static void queue_prepped(struct io_uring *ring, struct io_data *data, int fd) {
-    struct io_uring_sqe *sqe;
-
-    sqe = io_uring_get_sqe(ring);
-    assert(sqe);
-
-    if (data->read)
-        io_uring_prep_readv(sqe, fd, &data->iov, 1, data->offset);
-    else
-        io_uring_prep_writev(sqe, fd, &data->iov, 1, data->offset);
-
-    io_uring_sqe_set_data(sqe, data);
 }
 
 int copy_recursive(const char *src, const char *dst, struct io_uring *ring) {
