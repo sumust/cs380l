@@ -11,22 +11,27 @@ capture_stats() {
     local method=$2
     vmstat 1 > "${dataset}_${method}_vmstat.txt" &
     vmstat_pid=$!
-    iostat 1 > "${dataset}_${method}_iostat.txt" &
+    iostat -dmx 1 > "${dataset}_${method}_iostat.txt" &
     iostat_pid=$!
-    sleep 2 
+    sleep 2  # Ensure stats collection starts
 }
 
 process_stats() {
     local dataset=$1
     local method=$2
-    local cpu_stat=$(awk '{u+=$13; s+=$14} END {if (NR > 0) print u/NR " " s/NR; else print "0 0"}' "${dataset}_${method}_vmstat.txt")
-    local mem_stat=$(awk '{free+=$4; buff+=$5; cache+=$6} END {if (NR > 0) print free/NR " " buff/NR " " cache/NR; else print "0 0 0"}' "${dataset}_${method}_vmstat.txt")
-    local io_stat=$(awk '/^Device/ {getline; print $5 " " $6}' "${dataset}_${method}_iostat.txt")
-    echo "${cpu_stat},${mem_stat},${io_stat}"
+
+    # Process CPU and memory statistics
+    local cpu_stat=$(awk '{u+=$13; s+=$14} END {if (NR > 2) print u/(NR-2) " " s/(NR-2); else print "0 0"}' "${dataset}_${method}_vmstat.txt")
+    local mem_stat=$(awk '{free+=$4; buff+=$5; cache+=$6} END {if (NR > 2) print free/(NR-2) " " buff/(NR-2) " " cache/(NR-2); else print "0 0 0"}' "${dataset}_${method}_vmstat.txt")
+
+    # Process I/O read/write statistics
+    local io_read=$(awk '/^Device/ && NR>1 {getline; print $6}' "${dataset}_${method}_iostat.txt" | awk '{sum+=$1; count++} END {if (count>0) print sum/count; else print "0"}')
+    local io_write=$(awk '/^Device/ && NR>1 {getline; print $7}' "${dataset}_${method}_iostat.txt" | awk '{sum+=$1; count++} END {if (count>0) print sum/count; else print "0"}')
+
+    echo "$cpu_stat,$mem_stat,$io_read,$io_write"
 }
 
-# Added many_large_files dataset
-for dataset in small_files large_files many_large_files mixed_files nested_dirs; do
+for dataset in small_files large_files larger_files many_large_files mixed_files nested_dirs; do
     echo "Testing dataset: $dataset"
 
     # Clear filesystem cache
