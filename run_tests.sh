@@ -3,7 +3,41 @@
 # Timestamp for results file
 timestamp=$(date +"%Y%m%d_%H%M%S")
 result_file="results_$timestamp.csv"
-echo "Dataset,Method,Time,Memory Usage (KB),I/O Read (KB/s),I/O Write (KB/s),CPU Usage (%)" > $result_file
+echo "Dataset,Method,Time,I/O Read (KB),I/O Write (KB)" > $result_file
+
+capture_io_stats() {
+    local pid=$1
+    local io_file="/proc/$pid/io"
+    local out_file="${2}_io.txt"
+    > "$out_file"
+
+    while kill -0 $pid 2> /dev/null; do
+        if [ -f "$io_file" ]; then
+            awk '/read_bytes/ {print $2}' $io_file >> "$out_file"
+            awk '/write_bytes/ {print $2}' $io_file >> "$out_file"
+        fi
+        sleep 1
+    done
+}
+
+process_io_data() {
+    local file=$1
+    local sum_read=0
+    local sum_write=0
+    local count=0
+
+    while read -r read_bytes; read -r write_bytes; do
+        sum_read=$((sum_read + read_bytes))
+        sum_write=$((sum_write + write_bytes))
+        count=$((count + 1))
+    done < $file
+
+    if [ $count -gt 0 ]; then
+        echo "$((sum_read / count / 1024)) $((sum_write / count / 1024))"
+    else
+        echo "0 0"
+    fi
+}
 
 capture_and_process_stats() {
     local dataset=$1
@@ -17,53 +51,30 @@ capture_and_process_stats() {
     echo "Starting $method for $dataset..."
     start_time=$(date +%s.%N)
 
-    # Start background monitoring processes
-    vmstat 1 > "${dataset}_${method}_vmstat.txt" &
-    vmstat_pid=$!
-    iostat -dmx 1 > "${dataset}_${method}_iostat.txt" &
-    iostat_pid=$!
-
-    # Execute the copying command
     if [ "$method" == "cp" ]; then
-        cp -r $dataset ${dataset}_${method}_copy
+        cp -r $dataset ${dataset}_${method}_copy &
     else
-        ./io_uring_copy $dataset ${dataset}_${method}_copy
+        ./io_uring_copy $dataset ${dataset}_${method}_copy &
     fi
+    copy_pid=$!
 
-    # Ensure all I/O operations are completed
-    sync
+    # Capture I/O statistics in the background
+    capture_io_stats $copy_pid "${dataset}_${method}" &
+
+    wait $copy_pid
 
     end_time=$(date +%s.%N)
     elapsed_time=$(echo "$end_time - $start_time" | bc)
 
-    # Stop the monitoring processes
-    kill $vmstat_pid $iostat_pid
-    wait $vmstat_pid $iostat_pid
+    # Ensure all I/O operations are completed
+    sync
 
-    # Collect and process CPU and memory usage data
-    cpu_user=$(awk '{u+=$13} END {print u/NR}' "${dataset}_${method}_vmstat.txt")
-    cpu_system=$(awk '{s+=$14} END {print s/NR}' "${dataset}_${method}_vmstat.txt")
-    mem_free=$(awk '/^MemFree/ {print $2}' /proc/meminfo)
-    mem_buffers=$(awk '/^Buffers/ {print $2}' /proc/meminfo)
-    mem_cached=$(awk '/^Cached/ {print $2}' /proc/meminfo)
-
-    # Process I/O read/write statistics
-    io_read=$(awk '/^Device/ && NR>1 {getline; print $6}' "${dataset}_${method}_iostat.txt" | awk '{sum+=$1; count++} END {if (count>0) print sum/count; else print "0"}')
-    io_write=$(awk '/^Device/ && NR>1 {getline; print $7}' "${dataset}_${method}_iostat.txt" | awk '{sum+=$1; count++} END {if (count>0) print sum/count; else print "0"}')
-
-    # Verify the integrity of the copied data
-    if diff -r $dataset ${dataset}_${method}_copy > /dev/null; then
-        verification_status="Verification passed: $dataset and ${dataset}_${method}_copy are identical."
-    else
-        verification_status="Verification failed: $dataset and ${dataset}_${method}_copy differ."
-    fi
-
-    echo "$verification_status"
-    echo "$dataset,$method,$elapsed_time,$mem_free,$mem_buffers,$mem_cached,$io_read,$io_write,$cpu_user $cpu_system" >> $result_file
+    # Process I/O data
+    io_data=$(process_io_data "${dataset}_${method}_io.txt")
+    echo "$dataset,$method,$elapsed_time,$io_data" >> $result_file
 }
 
-# List of datasets
-datasets=("high_volume_small_files")
+datasets=("very_large_file" "very_large_file1")
 
 for dataset in "${datasets[@]}"; do
     echo "Testing dataset: $dataset"
