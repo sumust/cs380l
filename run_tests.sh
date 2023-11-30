@@ -1,58 +1,71 @@
 #!/bin/bash
 
-echo "Running tests..."
+# Timestamp for results file
+timestamp=$(date +"%Y%m%d_%H%M%S")
+result_file="results_$timestamp.csv"
+echo "Dataset,Method,Time,Memory Usage (KB),I/O Read (KB/s),I/O Write (KB/s),CPU Usage (%)" > $result_file
 
-# File to store the results
-result_file="results.csv"
-echo "Dataset,Method,Time,CPU Usage,Memory Usage,I/O Read,I/O Write" > $result_file
-
-capture_stats() {
-    local dataset=$1
-    local method=$2
-    vmstat 1 > "${dataset}_${method}_vmstat.txt" &
-    vmstat_pid=$!
-    iostat -dmx 1 > "${dataset}_${method}_iostat.txt" &
-    iostat_pid=$!
-    sleep 2  # Ensure stats collection starts
-}
-
-process_stats() {
+capture_and_process_stats() {
     local dataset=$1
     local method=$2
 
-    # Process CPU and memory statistics
-    local cpu_stat=$(awk '{u+=$13; s+=$14} END {if (NR > 2) print u/(NR-2) " " s/(NR-2); else print "0 0"}' "${dataset}_${method}_vmstat.txt")
-    local mem_stat=$(awk '{free+=$4; buff+=$5; cache+=$6} END {if (NR > 2) print free/(NR-2) " " buff/(NR-2) " " cache/(NR-2); else print "0 0 0"}' "${dataset}_${method}_vmstat.txt")
+    # Clear filesystem cache and sync
+    sync
+    echo 3 | sudo tee /proc/sys/vm/drop_caches > /dev/null
+    sync
 
-    # Process I/O read/write statistics
-    local io_read=$(awk '/^Device/ && NR>1 {getline; print $6}' "${dataset}_${method}_iostat.txt" | awk '{sum+=$1; count++} END {if (count>0) print sum/count; else print "0"}')
-    local io_write=$(awk '/^Device/ && NR>1 {getline; print $7}' "${dataset}_${method}_iostat.txt" | awk '{sum+=$1; count++} END {if (count>0) print sum/count; else print "0"}')
+    echo "Starting $method for $dataset..."
+    start_time=$(date +%s.%N)
 
-    echo "$cpu_stat,$mem_stat,$io_read,$io_write"
+    # Execute the copying command in the background and get its PID
+    if [ "$method" == "cp" ]; then
+        cp -r $dataset ${dataset}_${method}_copy &
+    else
+        ./io_uring_copy $dataset ${dataset}_${method}_copy &
+    fi
+    copy_pid=$!
+
+    # Monitor CPU, memory, and I/O usage of the process
+    pidstat -p $copy_pid 1 > "${dataset}_${method}_pidstat.txt" &
+    pidstat_pid=$!
+    iotop -b -p $copy_pid -n 10 -d 1 > "${dataset}_${method}_iotop.txt" &
+    iotop_pid=$!
+
+    # Wait for the copy process to complete
+    wait $copy_pid
+
+    # Ensure all I/O operations are completed
+    sync
+
+    end_time=$(date +%s.%N)
+    elapsed_time=$(echo "$end_time - $start_time" | bc)
+
+    # Stop the monitoring processes
+    kill $pidstat_pid $iotop_pid
+    wait $pidstat_pid $iotop_pid
+
+    # Collect and process CPU and memory usage data
+    cpu_usage=$(awk '{if ($1 != "Linux") print $7" "$8}' "${dataset}_${method}_pidstat.txt" | tail -n 1)
+    mem_usage=$(awk '/Total DISK READ and DISK WRITE/ {getline; print $4" "$10}' "${dataset}_${method}_iotop.txt" | tail -n 1)
+
+    # Verify the integrity of the copied data
+    if diff -r $dataset ${dataset}_${method}_copy > /dev/null; then
+        verification_status="Verification passed: $dataset and ${dataset}_${method}_copy are identical."
+    else
+        verification_status="Verification failed: $dataset and ${dataset}_${method}_copy differ."
+    fi
+
+    echo "$verification_status"
+    echo "$dataset,$method,$elapsed_time,$mem_usage,$cpu_usage" >> $result_file
 }
 
-for dataset in small_files large_files larger_files many_large_files mixed_files nested_dirs; do
+# List of datasets
+datasets=("very_large_file" "very_large_file1")
+
+for dataset in "${datasets[@]}"; do
     echo "Testing dataset: $dataset"
-
-    # Clear filesystem cache
-    echo 3 | sudo tee /proc/sys/vm/drop_caches
-
-    echo "Starting cp for $dataset..."
-    capture_stats $dataset "cp"
-    cp_time=$(/usr/bin/time -f "%e" cp -r $dataset ${dataset}_cp_copy 2>&1)
-    kill $vmstat_pid $iostat_pid
-    cp_stats=$(process_stats $dataset "cp")
-    echo "$dataset,cp,$cp_time,$cp_stats" >> $result_file
-
-    # Clear filesystem cache again
-    echo 3 | sudo tee /proc/sys/vm/drop_caches
-
-    echo "Starting io_uring for $dataset..."
-    capture_stats $dataset "io_uring"
-    uring_time=$(/usr/bin/time -f "%e" ./io_uring_copy $dataset ${dataset}_uring_copy 2>&1)
-    kill $vmstat_pid $iostat_pid
-    uring_stats=$(process_stats $dataset "io_uring")
-    echo "$dataset,io_uring,$uring_time,$uring_stats" >> $result_file
+    capture_and_process_stats $dataset "cp"
+    capture_and_process_stats $dataset "io_uring"
 done
 
 echo "Tests completed."
