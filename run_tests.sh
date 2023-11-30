@@ -40,6 +40,8 @@ capture_and_process_stats() {
     # Wait for the copy process to complete
     wait $copy_pid
 
+    sync
+
     end_time=$(date +%s.%N)
     elapsed_time=$(echo "$end_time - $start_time" | bc)
 
