@@ -25,40 +25,36 @@ capture_and_process_stats() {
     fi
     copy_pid=$!
 
-    # Start monitoring CPU usage for the specific process
-    pidstat -p $copy_pid 1 > "${dataset}_${method}_pidstat.txt" &
+    # Monitor the process
+    cpu_file="${dataset}_${method}_cpu.txt"
+    sar -P ALL 1 > $cpu_file &  # Start sar to monitor CPU usage
+    sar_pid=$!
 
-    # Monitor I/O statistics for the specific process
-    iotop -b -p $copy_pid -d 1 -n 10 > "${dataset}_${method}_iotop.txt" &
+    sleep 2  # Allow time for the process to start and stabilize
 
-    # Monitor memory usage
+    # Monitor Memory and I/O statistics
     while kill -0 $copy_pid 2> /dev/null; do
-        ps -o rss= -p $copy_pid >> "${dataset}_${method}_mem.txt"
+        awk '/VmRSS/{print $2}' /proc/$copy_pid/status >> "${dataset}_${method}_mem.txt"
+        awk '/read_bytes/{print $2}' /proc/$copy_pid/io >> "${dataset}_${method}_io_read.txt"
+        awk '/write_bytes/{print $2}' /proc/$copy_pid/io >> "${dataset}_${method}_io_write.txt"
         sleep 1
     done
 
-    # Wait for the copy process to complete
-    wait $copy_pid
+    kill $sar_pid  # Stop sar monitoring
 
-    sync
-
+    # Calculate elapsed time
     end_time=$(date +%s.%N)
     elapsed_time=$(echo "$end_time - $start_time" | bc)
 
-    # Wait a bit to ensure monitoring data is captured fully
-    sleep 2
+    # Aggregate Memory Usage
+    mem_usage=$(awk '{total+=$1; count++} END {if (count > 0) print total/count; else print "NA"}' "${dataset}_${method}_mem.txt")
 
-    # Kill the monitoring tools
-    pkill -P $$
+    # Aggregate I/O Statistics
+    io_read_avg=$(awk '{total+=$1; count++} END {if (count > 0) print total/count; else print "NA"}' "${dataset}_${method}_io_read.txt")
+    io_write_avg=$(awk '{total+=$1; count++} END {if (count > 0) print total/count; else print "NA"}' "${dataset}_${method}_io_write.txt")
 
-    # Extract CPU usage
-    cpu_usage=$(awk '{if(NR>1)print $6" "$7}' "${dataset}_${method}_pidstat.txt" | awk '{u+=$1; s+=$2} END {print u/NR" "s/NR}')
-
-    # Extract I/O statistics
-    io_stat=$(awk '{read+=$4; write+=$6} END {print read/NR" "write/NR}' "${dataset}_${method}_iotop.txt")
-
-    # Calculate average memory usage
-    mem_usage=$(awk '{total+=$1; count++} END {print total/count}' "${dataset}_${method}_mem.txt")
+    # Calculate CPU Usage
+    cpu_usage=$(awk -v pid=$copy_pid '$1 == "Average:" && $3 == pid {print $7, $8}' $cpu_file)
 
     # Verify the integrity of the copied data
     if diff -r $dataset ${dataset}_${method}_copy > /dev/null; then
@@ -68,7 +64,7 @@ capture_and_process_stats() {
     fi
 
     echo "$verification_status"
-    echo "$dataset,$method,$elapsed_time,$mem_usage,$io_stat,$cpu_usage" >> $result_file
+    echo "$dataset,$method,$elapsed_time,$mem_usage,$io_read_avg,$io_write_avg,$cpu_usage" >> $result_file
 }
 
 # List of datasets
@@ -80,4 +76,4 @@ for dataset in "${datasets[@]}"; do
     capture_and_process_stats $dataset "io_uring"
 done
 
-echo "Tests completed.
+echo "Tests completed."
