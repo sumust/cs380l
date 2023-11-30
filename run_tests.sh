@@ -61,13 +61,12 @@ capture_and_process_stats() {
     # Capture I/O statistics in the background
     capture_io_stats $copy_pid "${dataset}_${method}" &
 
+    # Ensure all I/O operations are completed
     wait $copy_pid
+    sync
 
     end_time=$(date +%s.%N)
     elapsed_time=$(echo "$end_time - $start_time" | bc)
-
-    # Ensure all I/O operations are completed
-    sync
 
     # Process I/O data
     io_data=$(process_io_data "${dataset}_${method}_io.txt")
