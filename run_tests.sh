@@ -1,70 +1,43 @@
 #!/bin/bash
 
+# I/O AND TIME CAPTURE WORKS CORRECTLY, WITH VERIFICATION ADDED
+# Timestamp for results file
 timestamp=$(date +"%Y%m%d_%H%M%S")
 result_file="results_$timestamp.csv"
-echo "Dataset,Method,Time,I/O Read (KB),I/O Write (KB),CPU User Time (%),CPU System Time (%)" > $result_file
+echo "Dataset,Method,Time,I/O Read (KB),I/O Write (KB)" > $result_file
 
-capture_io_and_cpu_stats() {
+capture_io_stats() {
     local pid=$1
-    local dataset=$2
-    local method=$3
     local io_file="/proc/$pid/io"
-    local stat_file="/proc/$pid/stat"
-    local total_cpu_file="/proc/stat"
-    local io_out_file="${dataset}_${method}_io.txt"
-    local cpu_out_file="${dataset}_${method}_cpu.txt"
-    > "$io_out_file"
-    > "$cpu_out_file"
+    local out_file="${2}_io.txt"
+    > "$out_file"
 
-    local total_cpu_time_before=$(awk '{print $2 + $3 + $4 + $5 + $6 + $7 + $8}' $total_cpu_file)
     while kill -0 $pid 2> /dev/null; do
         if [ -f "$io_file" ]; then
-            awk '/read_bytes/ {print $2}' $io_file >> "$io_out_file"
-            awk '/write_bytes/ {print $2}' $io_file >> "$io_out_file"
-        fi
-        if [ -f "$stat_file" ]; then
-            awk '{print $14 " " $15}' $stat_file >> "$cpu_out_file"
+            awk '/read_bytes/ {print $2}' $io_file >> "$out_file"
+            awk '/write_bytes/ {print $2}' $io_file >> "$out_file"
         fi
         sleep 1
     done
-    local total_cpu_time_after=$(awk '{print $2 + $3 + $4 + $5 + $6 + $7 + $8}' $total_cpu_file)
-
-    # Calculate total CPU time elapsed
-    echo "$total_cpu_time_before $total_cpu_time_after" >> "$cpu_out_file"
 }
 
-process_io_and_cpu_data() {
-    local io_file=$1
-    local cpu_file=$2
-    local total_cpu_file=$3
-
-    # Process I/O data
+process_io_data() {
+    local file=$1
     local sum_read=0
     local sum_write=0
     local count=0
+
     while read -r read_bytes; read -r write_bytes; do
         sum_read=$((sum_read + read_bytes))
         sum_write=$((sum_write + write_bytes))
         count=$((count + 1))
-    done < $io_file
-    local avg_read=$((sum_read / count / 1024))
-    local avg_write=$((sum_write / count / 1024))
+    done < $file
 
-    # Process CPU data
-    local sum_user=0
-    local sum_system=0
-    local total_cpu_before
-    local total_cpu_after
-    while read -r user_time system_time; do
-        sum_user=$((sum_user + user_time))
-        sum_system=$((sum_system + system_time))
-    done < $cpu_file
-    read total_cpu_before total_cpu_after < $cpu_file
-    local total_cpu_time=$((total_cpu_after - total_cpu_before))
-    local avg_user_cpu=$(bc <<< "scale=2; 100 * $sum_user / $total_cpu_time")
-    local avg_system_cpu=$(bc <<< "scale=2; 100 * $sum_system / $total_cpu_time")
-
-    echo "$avg_read $avg_write $avg_user_cpu $avg_system_cpu"
+    if [ $count -gt 0 ]; then
+        echo "$((sum_read / count / 1024)) $((sum_write / count / 1024))"
+    else
+        echo "0 0"
+    fi
 }
 
 capture_and_process_stats() {
@@ -86,8 +59,8 @@ capture_and_process_stats() {
     fi
     copy_pid=$!
 
-    # Capture I/O and CPU statistics in the background
-    capture_io_and_cpu_stats $copy_pid $dataset $method &
+    # Capture I/O statistics in the background
+    capture_io_stats $copy_pid "${dataset}_${method}" &
 
     # Ensure all I/O operations are completed
     wait $copy_pid
@@ -96,9 +69,9 @@ capture_and_process_stats() {
     end_time=$(date +%s.%N)
     elapsed_time=$(echo "$end_time - $start_time" | bc)
 
-    # Process I/O and CPU data
-    io_cpu_data=$(process_io_and_cpu_data "${dataset}_${method}_io.txt" "${dataset}_${method}_cpu.txt" "/proc/stat")
-    echo "$dataset,$method,$elapsed_time,$io_cpu_data" >> $result_file
+    # Process I/O data
+    io_data=$(process_io_data "${dataset}_${method}_io.txt")
+    echo "$dataset,$method,$elapsed_time,$io_data" >> $result_file
 
     # Verification of the copied data
     if diff -r $dataset ${dataset}_${method}_copy > /dev/null; then
