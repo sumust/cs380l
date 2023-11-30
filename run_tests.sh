@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# I/O AND TIME CAPTURE WORKS CORRECTLY
 # Timestamp for results file
 timestamp=$(date +"%Y%m%d_%H%M%S")
 result_file="results_$timestamp.csv"
